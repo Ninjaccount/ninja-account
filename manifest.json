@@ -4,7 +4,10 @@
   "name": "Ninja Account",
   "description": "Ninja Account helps you being free on the web",
   "version": "1.0",
-
+  "background": {
+    "scripts" : ["ninja-event-page.js"],
+    "persistent" : "false"
+  },
   "browser_action": {
     "default_icon": "icon.png",
     "default_popup": "ninja.html"

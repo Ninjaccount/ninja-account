@@ -92,9 +92,13 @@ function ninjaCreateAccount(){
 
 document.addEventListener('DOMContentLoaded', function()
 {
+  initializeView();
+});
+
+function initializeView(){
   $('#ninja-create-account').click(ninjaCreateAccount);
   replaceLinks($("#email-response"));
-});
+}
 
 function injectCallback(resultJson)
 {
