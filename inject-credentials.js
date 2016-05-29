@@ -1,5 +1,18 @@
-alert("Im' here");
+/*
+var toInject =
+{
+  email : string,
+  password : string
+}
+*/
 
-var result = "I'm happy";
+chrome.runtime.onMessage.addListener(function listen(messageJson, sender, sendResponse)
+{
+  var toInject = JSON.parse(messageJson);
 
-result;
+  console.log( toInject );
+
+  sendResponse("I'm happy");
+});
+
+"Initialized";
