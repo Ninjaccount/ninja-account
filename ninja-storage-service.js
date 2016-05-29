@@ -10,7 +10,7 @@ ninja = {
   name : string,
   email : string,
   password : string,
-  sid_token : guerrilla token
+  sidToken : guerrilla token
 }
 */
 var ninjaStorageService = (function(){
@@ -33,19 +33,24 @@ var ninjaStorageService = (function(){
     ninja._id = ninja.siteUrl + "_" + Date.now();
     storage.current = ninja._id;
     storage.ninjas[ ninja._id ] = ninja;
+    console.log('Create ', ninja);
     saveSiteStorage(ninja.siteUrl, storage);
    }
 
    function updateNinja( ninja ) {
+     console.log('Update ', ninja);
      var storage = getSiteStorage(ninja.siteUrl);
      storage.ninjas[ ninja._id ] = ninja;
      saveSiteStorage(ninja.siteUrl, storage);
    }
 
    function getCurrentNinja( siteUrl ){
+     console.log('Get for site', siteUrl);
     var storage = getSiteStorage(siteUrl);
     if( !storage.current ) return null;
-    return storage.ninjas[storage.current];
+    var current = storage.ninjas[storage.current]
+    console.log('Current ', current);
+    return current;
    }
 
    return {
@@ -54,4 +59,4 @@ var ninjaStorageService = (function(){
      getCurrentNinja: getCurrentNinja
    };
 
-});
+})();

@@ -5,34 +5,36 @@ const GUERRILLA_API = `${PROXY_THIS_API}/http://api.guerrillamail.com/ajax.php`;
 
 var ninjaGuerrillaService = (function(){
 
-  var sidToken;
-  var lastEmailId = 0;
-
-  function fetchAction(a){
+  function fetchAction(a, ninja){
     return fetch(`${GUERRILLA_API}?f=${a}`, {mode: 'cors'})
     .then(rep => {
       return rep.json();
     })
     .then(json => {
-      sidToken = json.sid_token;
+      ninja.sidToken = json.sid_token;
+      ninjaStorageService.updateNinja(ninja);
       return json;
     })
-    .catch(err => console.log('Error getting email adress ', err));
+    .catch(err => console.log('Error requesting guerrilla api ', err));
   }
 
-  function getNewAddress(){
-    return fetchAction("get_email_address");
+  function getNewAddress(ninja){
+    return fetchAction("get_email_address", ninja);
   }
 
-  function getNewEmail(){
-    return fetchAction(`check_email&seq=0&sid_token=${sidToken}`)
+  function getNewEmail( ninja ){
+    return fetchAction(`get_email_list&seq=0&offset=0&sid_token=${ninja.sidToken}`, ninja)
     .then(json => {
-      if( json.count == 0 || json.list[0].mail_id == lastEmailId )  {
+      if( ninja.lastEmail && json.list[0].mail_id == ninja.lastEmail.mail_id )  {
         return Promise.reject("No new email");
       }
-      lastEmailId = json.list[0].mail_id;
-      return fetchAction(`fetch_email&sid_token=${sidToken}&email_id=${lastEmailId}`)
-        .then( result => result.mail_body);
+      var lastEmailId = json.list[0].mail_id;
+      return fetchAction(`fetch_email&sid_token=${ninja.sidToken}&email_id=${lastEmailId}`, ninja)
+        .then( result => {
+          ninja.lastEmail = result;
+          ninjaStorageService.updateNinja(ninja);
+          return result.mail_body;
+        });
     });
   }
 

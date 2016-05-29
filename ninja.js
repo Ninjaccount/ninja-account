@@ -24,6 +24,15 @@ function doCurrentTab(callback)
   });
 }
 
+function getCurrentDomain(){
+  var promise = new Promise( (resolve, reject) => {
+    doCurrentTab(tab => {
+      resolve(new URL(tab.url).hostname);
+    });
+  });
+  return promise;
+}
+
 /**
 * Injects resources provided as paths into active tab in chrome
 * @param files {string[]}
@@ -58,7 +67,7 @@ function injectResources(files) {
 function ninjaCreateAccount(){
   doCurrentTab(function doInject(tab)
   {
-    var toInject =
+    var newNinja =
     {
       'email' : 'me@you.lol',
       'password' : 'panpan',
@@ -75,11 +84,14 @@ function ninjaCreateAccount(){
         },
         function callback(results)
         {
-          ninjaGuerrillaService.getNewAddress()
+          ninjaGuerrillaService.getNewAddress(newNinja)
           .then(rep => {
             console.log('We got a ninja mail', rep);
-            toInject.email = rep.email_addr;
-            chrome.tabs.sendMessage(tab.id, JSON.stringify(toInject), {}, injectCallback)
+            newNinja.email = rep.email_addr;
+            newNinja.siteUrl = new URL(tab.url).hostname;
+            console.log('Site url is ', newNinja.siteUrl);
+            ninjaStorageService.createNinja(newNinja);
+            chrome.tabs.sendMessage(tab.id, JSON.stringify(newNinja), {}, injectCallback)
           });
         }
       );
@@ -92,12 +104,20 @@ function ninjaCreateAccount(){
 
 document.addEventListener('DOMContentLoaded', function()
 {
-  initializeView();
+  getCurrentDomain().then(domain => initializeView(domain));
 });
 
-function initializeView(){
+var unsubscribe;
+
+function initializeView( siteUrl ){
+  var ninja = ninjaStorageService.getCurrentNinja(siteUrl);
+  if(ninja){
+    console.log("We have a ninja: ", ninja);
+    unsubscribe = setInterval(checkAndDisplayEmail, 5000);
+  }else{
+    console.log("No ninja");
+  }
   $('#ninja-create-account').click(ninjaCreateAccount);
-  replaceLinks($("#email-response"));
 }
 
 function injectCallback(resultJson)
@@ -116,11 +136,15 @@ function injectCallback(resultJson)
 
   $("#email-response").html("Waiting for email");
 
-  setInterval(checkAndDisplayEmail, 5000);
+  if(!unsubscribe){
+    unsubscribe = setInterval(checkAndDisplayEmail, 5000);
+  }
 }
 
 function checkAndDisplayEmail(){
-  ninjaGuerrillaService.getNewEmail()
+  getCurrentDomain().then(url => {
+    return ninjaGuerrillaService.getNewEmail(ninjaStorageService.getCurrentNinja(url));
+  })
   .then(email =>
   {
     replaceLinks( $("#email-response").html(email) );
