@@ -107,13 +107,18 @@ document.addEventListener('DOMContentLoaded', function()
   getCurrentDomain().then(domain => initializeView(domain));
 });
 
-var unsubscribe;
+var intervalId;
+
+function stop(){
+  clearInterval(intervalId);
+}
 
 function initializeView( siteUrl ){
   var ninja = ninjaStorageService.getCurrentNinja(siteUrl);
   if(ninja){
     console.log("We have a ninja: ", ninja);
-    unsubscribe = setInterval(checkAndDisplayEmail, 5000);
+    console.log("Interval id is ", intervalId);
+    intervalId = setInterval(checkAndDisplayEmail, 5000);
   }else{
     console.log("No ninja");
   }
@@ -136,8 +141,8 @@ function injectCallback(resultJson)
 
   $("#email-response").html("Waiting for email");
 
-  if(!unsubscribe){
-    unsubscribe = setInterval(checkAndDisplayEmail, 5000);
+  if(!intervalId){
+    intervalId = setInterval(checkAndDisplayEmail, 5000);
   }
 }
 
