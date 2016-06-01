@@ -10,7 +10,8 @@ ninja = {
   name : string,
   email : string,
   password : string,
-  sidToken : guerrilla token
+  sidToken : guerrilla token,
+  lastEmail: last email (id, body, etc...)
 }
 */
 var ninjaStorageService = (function(){

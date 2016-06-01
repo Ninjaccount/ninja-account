@@ -117,12 +117,26 @@ function initializeView( siteUrl ){
   var ninja = ninjaStorageService.getCurrentNinja(siteUrl);
   if(ninja){
     console.log("We have a ninja: ", ninja);
-    console.log("Interval id is ", intervalId);
+    populateFormWithNinja(ninja);
     intervalId = setInterval(checkAndDisplayEmail, 5000);
   }else{
     console.log("No ninja");
   }
   $('#ninja-create-account').click(ninjaCreateAccount);
+}
+
+
+function populateFormWithNinja(ninja){
+  _.keys(ninja).forEach( key =>
+  {
+    var $el = $(`*[name="${key}-input"]`)
+    if( $el.length == 0 ){
+      console.log('No form input found for ninja key', key);
+      return;
+    }
+    $el.val( ninja[key] );
+  });
+  populateFormWithEmail(ninja.lastEmail.mail_body);
 }
 
 function injectCallback(resultJson)
@@ -152,9 +166,13 @@ function checkAndDisplayEmail(){
   })
   .then(email =>
   {
-    replaceLinks( $("#email-response").html(email) );
+    populateFormWithEmail(email);
   })
   .catch(err => console.log("still waiting"));
+}
+
+function populateFormWithEmail(email){
+  replaceLinks( $("#email-response").html(email) );
 }
 
 function replaceLinks( $el ){
