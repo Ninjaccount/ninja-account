@@ -1,11 +1,12 @@
 const STORAGE_CONFIG = {
-
+  ninjaTimeBeforeSepuku : 120000
 }
 
 
 /**
 ninja = {
   _id : auto generated,
+  sepukuTime : date,//time to sepuku
   siteUrl : string,
   name : string,
   email : string,
@@ -32,6 +33,7 @@ var ninjaStorageService = (function(){
    function createNinja( ninja ){
     var storage = getSiteStorage(ninja.siteUrl);
     ninja._id = ninja.siteUrl + "_" + Date.now();
+    ninja.sepukuTime = Date.now() + STORAGE_CONFIG.ninjaTimeBeforeSepuku;
     storage.current = ninja._id;
     storage.ninjas[ ninja._id ] = ninja;
     console.log('Create ', ninja);

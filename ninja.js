@@ -113,12 +113,22 @@ function stop(){
   clearInterval(intervalId);
 }
 
+function registerMailCheckIfNotSepuku( ninja ){
+  if( ninja.sepukuTime > Date.now() ){
+    $("#email-response").html("Ninja waiting for email");
+    intervalId = setInterval(checkAndDisplayEmail, 5000);
+  }else{
+    $("#email-response").html("Your ninja postman is dead");
+  }
+
+}
+
 function initializeView( siteUrl ){
   var ninja = ninjaStorageService.getCurrentNinja(siteUrl);
   if(ninja){
     console.log("We have a ninja: ", ninja);
     populateFormWithNinja(ninja);
-    intervalId = setInterval(checkAndDisplayEmail, 5000);
+    registerMailCheckIfNotSepuku(ninja);
   }else{
     console.log("No ninja");
   }
@@ -136,7 +146,10 @@ function populateFormWithNinja(ninja){
     }
     $el.val( ninja[key] );
   });
-  populateFormWithEmail(ninja.lastEmail.mail_body);
+  
+  if( ninja.lastEmail ) {
+    populateFormWithEmail(ninja.lastEmail.mail_body);
+  }
 }
 
 function injectCallback(resultJson)
@@ -152,12 +165,6 @@ function injectCallback(resultJson)
     $el.css('background-color', '#80FFD9');
     $el.css('color', '#222222');
   });
-
-  $("#email-response").html("Waiting for email");
-
-  if(!intervalId){
-    intervalId = setInterval(checkAndDisplayEmail, 5000);
-  }
 }
 
 function checkAndDisplayEmail(){
