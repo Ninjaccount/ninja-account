@@ -1,36 +1,47 @@
 /**
+* VARS
+*/
+/**The current Ninja loaded on popup display*/
+var currentNinja;
+
+
+/**
 * Get the current URL.
 *
 * @param {function(string)} callback - called when the URL of the current tab
 *   is found.
 */
-function doCurrentTab(callback)
+var _currentTab;
+function getCurrentTab()
 {
-  // Query filter to be passed to chrome.tabs.query - see
-  // https://developer.chrome.com/extensions/tabs#method-query
-  var queryInfo = {
-    active: true,
-    currentWindow: true
-  };
+  var promise = new Promise( (resolve, reject) => {
+    if( _currentTab ){
+      resolve(_currentTab);
+      return;
+    }
+    // Query filter to be passed to chrome.tabs.query - see
+    // https://developer.chrome.com/extensions/tabs#method-query
+    var queryInfo = {
+      active: true,
+      currentWindow: true
+    };
 
-  chrome.tabs.query(queryInfo, function(tabs) {
-    // chrome.tabs.query invokes the callback with a list of tabs that match the
-    // query. When the popup is opened, there is certainly a window and at least
-    // one tab, so we can safely assume that |tabs| is a non-empty array.
-    // A window can only have one active tab at a time, so the array consists of
-    // exactly one tab.
-    var tab = tabs[0];
-    callback(tab);
-  });
+    chrome.tabs.query(queryInfo, function(tabs) {
+      // chrome.tabs.query invokes the callback with a list of tabs that match the
+      // query. When the popup is opened, there is certainly a window and at least
+      // one tab, so we can safely assume that |tabs| is a non-empty array.
+      // A window can only have one active tab at a time, so the array consists of
+      // exactly one tab.
+      var tab = tabs[0];
+      _currentTab = tab;
+      resolve(tab);
+    });
+  } );
+  return promise;
 }
 
 function getCurrentDomain(){
-  var promise = new Promise( (resolve, reject) => {
-    doCurrentTab(tab => {
-      resolve(new URL(tab.url).hostname);
-    });
-  });
-  return promise;
+  return getCurrentTab().then(tab => new URL(tab.url).hostname);
 }
 
 /**
@@ -64,42 +75,60 @@ function injectResources(files) {
   })));
 }
 
-function ninjaCreateAccount(){
-  doCurrentTab(function doInject(tab)
-  {
-    var newNinja =
-    {
-      'email' : 'me@you.lol',
-      'password' : 'panpan',
-      'name': 'coucou',
-      'firstname': 'le lapin'
-    }
-
-    injectResources(['node_modules/jquery/dist/jquery.js', 'node_modules/lodash/lodash.js'])
-    .then(() => {
-      chrome.tabs.executeScript(
-        tab.id,
-        {
-          'file' : 'inject-credentials.js'
-        },
-        function callback(results)
-        {
-          ninjaGuerrillaService.getNewAddress(newNinja)
-          .then(rep => {
-            console.log('We got a ninja mail', rep);
-            newNinja.email = rep.email_addr;
-            newNinja.siteUrl = new URL(tab.url).hostname;
-            console.log('Site url is ', newNinja.siteUrl);
-            ninjaStorageService.createNinja(newNinja);
-            chrome.tabs.sendMessage(tab.id, JSON.stringify(newNinja), {}, injectCallback)
-          });
+function prepareNinjaInjection(){
+  return new Promise( (resolve, reject) =>
+    getCurrentTab().then( tab =>
+      injectResources(['node_modules/jquery/dist/jquery.js', 'node_modules/lodash/lodash.js'])
+      .then(() => {
+        chrome.tabs.executeScript(
+          tab.id,
+          {
+            'file' : 'inject-credentials.js'
+          }, function(results) {
+            resolve(results);
+          })
         }
-      );
-    })
-    .catch(err => {
-      console.error('Error occurred: ', err);
+      )
+      .catch(err => console.error('Error occurred: ', err))
+    )
+  );
+}
+
+function ninjaCreateAccount(){
+  var newNinja =
+  {
+    'email' : 'me@you.lol',
+    'password' : 'panpan',
+    'name': 'coucou',
+    'firstname': 'le lapin'
+  }
+
+  prepareNinjaInjection().then(results => {
+    ninjaGuerrillaService.getNewAddress(newNinja)
+    .then(rep => {
+      getCurrentTab().then(tab => {
+        console.log('We got a ninja mail', rep);
+        newNinja.email = rep.email_addr;
+        newNinja.siteUrl = new URL(tab.url).hostname;
+        console.log('Site url is ', newNinja.siteUrl);
+        ninjaStorageService.createNinja(newNinja);
+        sendNinjaToInjectScript(tab, newNinja);
+      })
     });
   })
+}
+
+function ninjaLoginAccount(){
+  prepareNinjaInjection().then(() =>
+    getCurrentTab().then(tab => {
+      sendNinjaToInjectScript(tab, currentNinja);
+      console.log("Ninja logged");
+    })
+  );
+}
+
+function sendNinjaToInjectScript(tab, ninja){
+  chrome.tabs.sendMessage(tab.id, JSON.stringify(ninja), {}, injectCallback)
 }
 
 document.addEventListener('DOMContentLoaded', function()
@@ -115,76 +144,89 @@ function stop(){
 
 function registerMailCheckIfNotSepuku( ninja ){
   if( ninja.sepukuTime > Date.now() ){
-    $("#email-response").html("Ninja waiting for email");
+    $('#email-response').html('Ninja waiting for email');
     intervalId = setInterval(checkAndDisplayEmail, 5000);
   }else{
-    $("#email-response").html("Your ninja postman is dead");
+    $('#email-response').html('Your ninja postman is dead');
   }
 
 }
 
 function initializeView( siteUrl ){
-  var ninja = ninjaStorageService.getCurrentNinja(siteUrl);
-  if(ninja){
-    console.log("We have a ninja: ", ninja);
-    populateFormWithNinja(ninja);
-    registerMailCheckIfNotSepuku(ninja);
+  currentNinja = ninjaStorageService.getCurrentNinja(siteUrl);
+  if(currentNinja){
+    console.log('We have a ninja: ', currentNinja);
+    populateFormWithNinja(currentNinja);
+    registerMailCheckIfNotSepuku(currentNinja);
+    showNinjaLogin();
   }else{
-    console.log("No ninja");
+    console.log('No ninja');
+    showNinjaCreate();
   }
-  $('#ninja-create-account').click(ninjaCreateAccount);
+  $('#ninja-form').show();
 }
 
+function showNinjaCreate(){
+  $( '#ninja-create-other-account').hide();
+  $( '#ninja-login-account').hide();
+  $( '#ninja-create-account').show().click(ninjaCreateAccount);
+}
+
+function showNinjaLogin(){
+  $( '#ninja-create-other-account').show().click(ninjaCreateAccount);
+  $( '#ninja-login-account').show().click(ninjaLoginAccount);
+  $( '#ninja-create-account').hide();
+}
 
 function populateFormWithNinja(ninja){
   _.keys(ninja).forEach( key =>
-  {
-    var $el = $(`*[name="${key}-input"]`)
-    if( $el.length == 0 ){
-      console.log('No form input found for ninja key', key);
-      return;
+    {
+      var $el = $(`*[name='${key}-input']`)
+      if( $el.length == 0 ){
+        console.log('No form input found for ninja key', key);
+        return;
+      }
+      $el.val( ninja[key] );
+    });
+
+    if( ninja.lastEmail ) {
+      populateFormWithEmail(ninja.lastEmail.mail_body);
     }
-    $el.val( ninja[key] );
-  });
-  
-  if( ninja.lastEmail ) {
-    populateFormWithEmail(ninja.lastEmail.mail_body);
   }
-}
 
-function injectCallback(resultJson)
-{
-  console.log("Ninja bananas : " , resultJson);
-  var results = JSON.parse(resultJson);
-  results.forEach(function( result )
+  function injectCallback(resultJson)
   {
-    var $el = $(`*[name="${result.key}-input"]`)
-    if( $el.length == 0 ) return;
-    $el.val( result.value );
-    if( !result.injected ) return;
-    $el.css('background-color', '#80FFD9');
-    $el.css('color', '#222222');
-  });
-}
+    console.log('Ninja bananas : ' , resultJson);
+    var results = JSON.parse(resultJson);
+    results.forEach(function( result )
+    {
+      var $el = $(`*[name='${result.key}-input']`)
+      if( $el.length == 0 ) return;
+      $el.val( result.value );
+      if( !result.injected ) return;
+      $el.css('background-color', '#80FFD9');
+      $el.css('color', '#222222');
+    });
+  }
 
-function checkAndDisplayEmail(){
-  getCurrentDomain().then(url => {
-    return ninjaGuerrillaService.getNewEmail(ninjaStorageService.getCurrentNinja(url));
-  })
-  .then(email =>
-  {
-    populateFormWithEmail(email);
-  })
-  .catch(err => console.log("still waiting"));
-}
+  function checkAndDisplayEmail(){
+    getCurrentDomain().then(url => {
+      return ninjaGuerrillaService.getNewEmail(ninjaStorageService.getCurrentNinja(url));
+    })
+    .then(email =>
+      {
+        populateFormWithEmail(email);
+      })
+      .catch(err => console.log('still waiting'));
+    }
 
-function populateFormWithEmail(email){
-  replaceLinks( $("#email-response").html(email) );
-}
+    function populateFormWithEmail(email){
+      replaceLinks( $('#email-response').html(email) );
+    }
 
-function replaceLinks( $el ){
-  $el.find("a").each((i,a) => {
-   var $a = $(a);
-    $a.click(() => chrome.tabs.update(null, {url : a.href}));
-  });
-}
+    function replaceLinks( $el ){
+      $el.find('a').each((i,a) => {
+        var $a = $(a);
+        $a.click(() => chrome.tabs.update(null, {url : a.href}));
+      });
+    }
