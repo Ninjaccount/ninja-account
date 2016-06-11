@@ -1,19 +1,15 @@
 // or see http://cors.io/
-const PROXY_CROSS_ORIGIN_ME = 'http://crossorigin.me/';
-const PROXY_CORS_IO = 'http://cors.io/?u=';
-const GUERRILLA_API = 'http://api.guerrillamail.com/ajax.php';
+//const PROXY_CROSS_ORIGIN_ME = 'http://crossorigin.me/';
+//const PROXY_CORS_IO = 'http://cors.io/?u=';
+const GUERRILLA_API = 'https://api.guerrillamail.com/ajax.php';
 
 var ninjaGuerrillaService = (function(){
 
-  function fetchAction(a, ninja, retrying){
-    var endpoint;
-    if(!retrying){
-      endpoint = `${PROXY_CORS_IO}` + encodeURIComponent(`${GUERRILLA_API}?f=${a}`);
-    }else{
-      endpoint = `${PROXY_CROSS_ORIGIN_ME}${GUERRILLA_API}?f=${a}`
-    }
+  function fetchAction(a, ninja){
+    var endpoint = `${GUERRILLA_API}?f=${a}`;
+
     console.log(`Requesting: ${endpoint}`);
-    return fetch(`${endpoint}`, {mode: 'cors'})
+    return fetch(endpoint, {mode: 'cors'})
     .then(rep => {
       return rep.json();
     })
@@ -23,12 +19,7 @@ var ninjaGuerrillaService = (function(){
       return json;
     })
     .catch(err => {
-      if(retrying){
-        console.log('Error requesting guerrilla api ', err);
-      }else{
-        console.log('Error requesting guerrilla api, let\'s retry! ', err);
-        return fetchAction(a, ninja, true);
-      }
+      console.log('Error requesting guerrilla api ', err);
     }
   );
 }
