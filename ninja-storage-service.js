@@ -12,7 +12,8 @@ ninja = {
   email : string,
   password : string,
   sidToken : guerrilla token,
-  lastEmail: last email (id, body, etc...)
+  //lastEmail: last
+  mailbox : [email (id, body, etc...)] // most recent mail is first (add with unshift)
 }
 */
 var ninjaStorageService = (function(){
@@ -34,6 +35,7 @@ var ninjaStorageService = (function(){
     var storage = getSiteStorage(ninja.siteUrl);
     ninja._id = ninja.siteUrl + "_" + Date.now();
     ninja.sepukuTime = Date.now() + STORAGE_CONFIG.ninjaTimeBeforeSepuku;
+    ninja.mailbox = [];
     storage.current = ninja._id;
     storage.ninjas[ ninja._id ] = ninja;
     console.log('Create ', ninja);
