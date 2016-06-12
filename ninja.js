@@ -157,8 +157,14 @@ function initializeView( siteUrl ){
   if(currentNinja){
     console.log('We have a ninja: ', currentNinja);
     populateFormWithNinja(currentNinja);
+
+    _.forEach( currentNinja.mailbox, email => {
+      populateFormWithEmail(email);
+    });
     registerMailCheckIfNotSepuku(currentNinja);
     showNinjaLogin();
+
+
   }else{
     console.log('No ninja');
     showNinjaCreate();
@@ -189,9 +195,9 @@ function populateFormWithNinja(ninja){
       $el.val( ninja[key] );
     });
 
-    if( ninja.lastEmail ) {
+    /*if( ninja.lastEmail ) {
       populateFormWithEmail(ninja.lastEmail.mail_body);
-    }
+    }*/
   }
 
   function injectCallback(resultJson)
@@ -211,17 +217,28 @@ function populateFormWithNinja(ninja){
 
   function checkAndDisplayEmail(){
     getCurrentDomain().then(url => {
-      return ninjaGuerrillaService.getNewEmail(ninjaStorageService.getCurrentNinja(url));
+      return ninjaGuerrillaService.getNewEmails(ninjaStorageService.getCurrentNinja(url));
     })
-    .then(email =>
+    .then(emails =>
       {
-        populateFormWithEmail(email);
+        _.forEachRight( emails, email => {
+          populateFormWithEmail(email);
+        });
       })
       .catch(err => console.log('still waiting'));
     }
 
     function populateFormWithEmail(email){
-      replaceLinks( $('#email-response').html(email) );
+      if( email.mail_id == 1 ) return; //skip guerrillamail welcome email
+      var $title = $(`<h3 class='accordion_title'>${email.mail_subject}</h3>`);
+      var $email = $(`<div>${email.mail_body}</div>`);
+      $('#email-list').prepend( $email ).prepend( $title );
+
+      $title.click(function(e){
+        $email.toggle();
+      });
+      //FIXME: ça marche ou pas???
+      replaceLinks($email);
     }
 
     function replaceLinks( $el ){

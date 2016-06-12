@@ -28,25 +28,38 @@ function getNewAddress(ninja){
   return fetchAction("get_email_address", ninja);
 }
 
-function getNewEmail( ninja ){
-  return fetchAction(`get_email_list&seq=0&offset=0&sid_token=${ninja.sidToken}`, ninja)
+function getNewEmails( ninja ){
+  var seq = 0;
+  var lastEmail = ninja.mailbox[0];
+  if( lastEmail ){
+    seq = lastEmail.mail_id
+  }
+  return fetchAction(`check_email&seq=${seq}&sid_token=${ninja.sidToken}`, ninja)
   .then(json => {
-    if( ninja.lastEmail && json.list[0].mail_id == ninja.lastEmail.mail_id )  {
+    if( json.count == 0 )  {
       return Promise.reject("No new email");
     }
-    var lastEmailId = json.list[0].mail_id;
-    return fetchAction(`fetch_email&sid_token=${ninja.sidToken}&email_id=${lastEmailId}`, ninja)
-    .then( result => {
-      ninja.lastEmail = result;
+
+    var promises = _.map(json.list, mailExcerpt => fetchAndSaveFullEmail(mailExcerpt, ninja));
+    return Promise.all(promises)
+    .then(fullEmails => {
       ninjaStorageService.updateNinja(ninja);
-      return result.mail_body;
+      return fullEmails
     });
+  });
+}
+
+function fetchAndSaveFullEmail(mailExcerpt, ninja){
+  return fetchAction(`fetch_email&email_id=${mailExcerpt.mail_id}&sid_token=${ninja.sidToken}`, ninja)
+  .then(email => {
+    ninja.mailbox.unshift(email);
+    return email;
   });
 }
 
 return {
   getNewAddress: getNewAddress,
-  getNewEmail : getNewEmail
+  getNewEmails : getNewEmails
 };
 
 })();

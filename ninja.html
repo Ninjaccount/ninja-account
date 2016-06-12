@@ -11,13 +11,11 @@
       body {
         font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
         font-size: 100%;
+        word-wrap: break-word;
+        width: 400px;
       }
-      #status {
-        /* avoid an excessively wide status text */
-        white-space: pre;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        max-width: 400px;
+      pre {
+        white-space: initial;
       }
     </style>
 
@@ -146,8 +144,8 @@
       <input name="email-input" type="email" placeholder="Ninja email" />
       <input name="password-input" type="text" placeholder="Ninja password" />
       <div id="email-response"></div>
-      <div id="ninja-create-other-account">spawn another ninja</div>
-
+      <a id="ninja-create-other-account">spawn another ninja</a>
+      <div id="email-list"></div>
     </form>
   </body>
 </html>
