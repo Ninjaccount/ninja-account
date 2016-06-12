@@ -144,7 +144,7 @@ function stop(){
 
 function registerMailCheckIfNotSepuku( ninja ){
   if( ninja.sepukuTime > Date.now() ){
-    $('#email-response').html('Ninja waiting for email');
+    $('#email-response').html('Ninja found for this site! Your postman is checking for new emails.');
     intervalId = setInterval(checkAndDisplayEmail, 5000);
   }else{
     $('#email-response').html('Your ninja postman is dead');
@@ -237,7 +237,6 @@ function populateFormWithNinja(ninja){
       $title.click(function(e){
         $email.toggle();
       });
-      //FIXME: ça marche ou pas???
       replaceLinks($email);
     }
 
