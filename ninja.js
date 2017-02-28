@@ -98,9 +98,9 @@ function ninjaCreateAccount(){
   var newNinja =
   {
     'email' : 'me@you.lol',
-    'password' : 'panpan',
-    'name': 'coucou',
-    'firstname': 'le lapin'
+    'password' : 'Str0ngP@ssw0rD',
+    'name': 'GreateName',
+    'firstname': 'BestFirstname'
   }
 
   prepareNinjaInjection().then(results => {
