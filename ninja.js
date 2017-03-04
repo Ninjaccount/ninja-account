@@ -184,6 +184,7 @@ function initializeView( siteUrl ){
  * @param {*} ninja 
  */
 function activateNinja( ninja ){
+  clearEmailList();
   populateFormWithNinja(ninja);
   _.forEach( ninja.mailbox, email => {
     populateFormWithEmail(email);
@@ -266,6 +267,10 @@ function populateFormWithNinja(ninja){
         $email.toggle();
       });
       replaceLinks($email);
+    }
+
+    function clearEmailList(){
+      $('#email-list').html('');
     }
 
     function replaceLinks( $el ){
