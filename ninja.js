@@ -245,16 +245,16 @@ function populateFormWithNinja(ninja){
   }
 
   function checkAndDisplayEmail(){
-    getCurrentDomain().then(url => {
-      return ninjaGuerrillaService.getNewEmails(ninjaStorageService.getCurrentNinja(url));
-    })
-    .then(emails =>
-      {
-        _.forEachRight( emails, email => {
-          populateFormWithEmail(email);
-        });
+    getCurrentDomain()
+      .then(url => {
+        return ninjaGuerrillaService.getNewEmails(currentNinja);
       })
-      .catch(err => console.log('still waiting'));
+      .then(emails => {
+          _.forEachRight( emails, email => {
+            populateFormWithEmail(email);
+          });
+        })
+       .catch(err => console.log(`Error: ${err}`));
     }
 
     function populateFormWithEmail(email){

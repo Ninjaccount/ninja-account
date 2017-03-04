@@ -1,7 +1,6 @@
 const STORAGE_CONFIG = {
-  ninjaTimeBeforeSepuku : 120000,
+  ninjaTimeBeforeSepuku : 600000, // time after wich we won't check emails anymore
   storagePrefix : "ninja."
-
 }
 
 

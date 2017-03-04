@@ -35,6 +35,10 @@ function getNewAddress(ninja){
     });
 }
 
+/**
+ * Return promise resolved with new emails or rejected if no new emails
+ * TODO: refac, this shouldn't reject when no new email. This should just resolve with empty array
+ */
 function getNewEmails( ninja ){
   var seq = 0;
   var lastEmail = ninja.mailbox[0];
