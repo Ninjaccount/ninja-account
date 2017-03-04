@@ -170,7 +170,7 @@ function initializeView( siteUrl ){
   if(currentNinja){
     console.log('We have a ninja: ', currentNinja);
     activateNinja(currentNinja);
-    showSpawnAnotherNinja();
+    showNinjaLogin();
   }else{
     console.log('No ninja');
     showNinjaCreate();
@@ -190,7 +190,6 @@ function activateNinja( ninja ){
     populateFormWithEmail(email);
   });
   registerMailCheckIfNotSepuku(ninja);
-  ninjaLoginAccount();
 }
 
 function initializeNinjaList(){
@@ -205,11 +204,13 @@ function initializeNinjaList(){
 
 function showNinjaCreate(){
   $( '#ninja-create-other-account').hide();
+  $( '#ninja-login-account').hide();
   $( '#ninja-create-account').show().click(ninjaCreateAccount);
 }
 
-function showSpawnAnotherNinja(){
+function showNinjaLogin(){
   $( '#ninja-create-other-account').show().click(ninjaCreateAccount);
+  $( '#ninja-login-account').show().click(ninjaLoginAccount);
   $( '#ninja-create-account').hide();
 }
 
