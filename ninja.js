@@ -113,9 +113,17 @@ function ninjaCreateAccount(){
         console.log('Site url is ', newNinja.siteUrl);
         ninjaStorageService.createNinja(newNinja);
         sendNinjaToInjectScript(tab, newNinja);
+        addNinjaToOptionList(newNinja);
       })
     });
-  })
+  });
+}
+
+function addNinjaToOptionList(ninja){
+  var $ninjaSelect = $("#ninja-display-list");
+  var $ninjaOption = $(`<option>${ninja.siteUrl} - ${ninja.email.replace(/@.*/, '')}</option>`);
+  $ninjaOption.data('ninja', ninja);
+  $ninjaSelect.prepend($ninjaOption);
 }
 
 function ninjaLoginAccount(){
@@ -162,7 +170,7 @@ function initializeView( siteUrl ){
   if(currentNinja){
     console.log('We have a ninja: ', currentNinja);
     activateNinja(currentNinja);
-    showNinjaLogin();
+    showSpawnAnotherNinja();
   }else{
     console.log('No ninja');
     showNinjaCreate();
@@ -181,32 +189,26 @@ function activateNinja( ninja ){
     populateFormWithEmail(email);
   });
   registerMailCheckIfNotSepuku(ninja);
+  ninjaLoginAccount();
 }
 
 function initializeNinjaList(){
   var $ninjaSelect = $("#ninja-display-list");
   ninjaStorageService.getNinjaList()
-  .forEach( ninja => {
-    var $ninjaOption = $(`<option>${ninja.siteUrl} - ${ninja.email.replace(/@.*/, '')}</option>`);
-    $ninjaOption.data('ninja', ninja);
-    $ninjaSelect.append($ninjaOption)
-  } );
+  .forEach(addNinjaToOptionList);
   $ninjaSelect.change(function onNinjaChange(e) {
     currentNinja = $ninjaSelect.find('option:selected').data('ninja');
     activateNinja(currentNinja);
-    ninjaLoginAccount();
   })
 }
 
 function showNinjaCreate(){
   $( '#ninja-create-other-account').hide();
-  $( '#ninja-login-account').hide();
   $( '#ninja-create-account').show().click(ninjaCreateAccount);
 }
 
-function showNinjaLogin(){
+function showSpawnAnotherNinja(){
   $( '#ninja-create-other-account').show().click(ninjaCreateAccount);
-  $( '#ninja-login-account').show().click(ninjaLoginAccount);
   $( '#ninja-create-account').hide();
 }
 
