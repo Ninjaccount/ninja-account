@@ -95,12 +95,20 @@ function prepareNinjaInjection(){
 }
 
 function ninjaCreateAccount(){
+  clearEmailList();
+  
   var newNinja =
   {
     'email' : 'me@you.lol',
     'password' : 'Str0ngP@ssw0rD',
     'name': 'GreatName',
-    'firstname': 'BestFirstname'
+    'firstname': 'BestFirstname',
+    'address': '705 Pike Street',
+    'city': 'Seattle',
+    'zipcode': 'WA 98101',
+    'state': 'washington',
+    'country': 'USA',
+    'phone': '206-694-5000'
   }
 
   prepareNinjaInjection().then(results => {
