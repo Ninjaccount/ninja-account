@@ -1,5 +1,7 @@
 const STORAGE_CONFIG = {
-  ninjaTimeBeforeSepuku : 120000
+  ninjaTimeBeforeSepuku : 120000,
+  storagePrefix : "ninja."
+
 }
 
 
@@ -19,7 +21,7 @@ ninja = {
 var ninjaStorageService = (function(){
 
    function getSiteStorage( siteUrl ){
-     var storageString = window.localStorage["ninja."+siteUrl];
+     var storageString = window.localStorage[STORAGE_CONFIG.storagePrefix + siteUrl];
      if( storageString ){
        return JSON.parse(storageString);
      }
@@ -58,10 +60,22 @@ var ninjaStorageService = (function(){
     return current;
    }
 
-   return {
-     createNinja: createNinja,
-     updateNinja: updateNinja,
-     getCurrentNinja: getCurrentNinja
-   };
+   function getNinjaList(){
+    var ninjas = 
+    _(_.keys( window.localStorage) )
+    .filter( key => key.startsWith(STORAGE_CONFIG.storagePrefix))
+    .map( key => JSON.parse( window.localStorage[key] ))
+    .flatMap( dbo => _.values(dbo.ninjas) )
+    .value();
+    
+    return ninjas;
+   }
+
+   return { 
+     createNinja, 
+     updateNinja,
+     getCurrentNinja,
+     getNinjaList
+    };
 
 })();

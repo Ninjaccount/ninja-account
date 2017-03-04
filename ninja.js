@@ -3,7 +3,7 @@
 */
 /**The current Ninja loaded on popup display*/
 var currentNinja;
-
+var checkMailIntervalId;
 
 /**
 * Get the current URL.
@@ -99,7 +99,7 @@ function ninjaCreateAccount(){
   {
     'email' : 'me@you.lol',
     'password' : 'Str0ngP@ssw0rD',
-    'name': 'GreateName',
+    'name': 'GreatName',
     'firstname': 'BestFirstname'
   }
 
@@ -136,16 +136,21 @@ document.addEventListener('DOMContentLoaded', function()
   getCurrentDomain().then(domain => initializeView(domain));
 });
 
-var intervalId;
 
-function stop(){
-  clearInterval(intervalId);
+function stopMailCheck(){
+  if( checkMailIntervalId ){
+    clearInterval(checkMailIntervalId);
+    checkMailIntervalId = null;
+  }
 }
 
 function registerMailCheckIfNotSepuku( ninja ){
+  
+  stopMailCheck();
+  
   if( ninja.sepukuTime > Date.now() ){
     $('#email-response').html('Ninja found for this site! Your postman is checking for new emails.');
-    intervalId = setInterval(checkAndDisplayEmail, 5000);
+    checkMailIntervalId = setInterval(checkAndDisplayEmail, 5000);
   }else{
     $('#email-response').html('Your ninja postman is dead');
   }
@@ -156,20 +161,41 @@ function initializeView( siteUrl ){
   currentNinja = ninjaStorageService.getCurrentNinja(siteUrl);
   if(currentNinja){
     console.log('We have a ninja: ', currentNinja);
-    populateFormWithNinja(currentNinja);
-
-    _.forEach( currentNinja.mailbox, email => {
-      populateFormWithEmail(email);
-    });
-    registerMailCheckIfNotSepuku(currentNinja);
+    activateNinja(currentNinja);
     showNinjaLogin();
-
-
   }else{
     console.log('No ninja');
     showNinjaCreate();
   }
+  initializeNinjaList();
   $('#ninja-form').show();
+}
+
+/**
+ * Populate extension form, populate email and launch email routine 
+ * @param {*} ninja 
+ */
+function activateNinja( ninja ){
+  populateFormWithNinja(ninja);
+  _.forEach( ninja.mailbox, email => {
+    populateFormWithEmail(email);
+  });
+  registerMailCheckIfNotSepuku(ninja);
+}
+
+function initializeNinjaList(){
+  var $ninjaSelect = $("#ninja-display-list");
+  ninjaStorageService.getNinjaList()
+  .forEach( ninja => {
+    var $ninjaOption = $(`<option>${ninja.siteUrl} - ${ninja.email.replace(/@.*/, '')}</option>`);
+    $ninjaOption.data('ninja', ninja);
+    $ninjaSelect.append($ninjaOption)
+  } );
+  $ninjaSelect.change(function onNinjaChange(e) {
+    currentNinja = $ninjaSelect.find('option:selected').data('ninja');
+    activateNinja(currentNinja);
+    ninjaLoginAccount();
+  })
 }
 
 function showNinjaCreate(){
