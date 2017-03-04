@@ -2,6 +2,8 @@
 //const PROXY_CROSS_ORIGIN_ME = 'http://crossorigin.me/';
 //const PROXY_CORS_IO = 'http://cors.io/?u=';
 const GUERRILLA_API = 'https://api.guerrillamail.com/ajax.php';
+const GUERRILLA_SITE = "ekznp";
+const NINJA_DOMAIN = "ninjaccount.tk";
 
 var ninjaGuerrillaService = (function(){
 
@@ -25,7 +27,12 @@ var ninjaGuerrillaService = (function(){
 }
 
 function getNewAddress(ninja){
-  return fetchAction("get_email_address", ninja);
+  return fetchAction(`get_email_address&site=${GUERRILLA_SITE}`, ninja)
+    .then( email => {
+      //Does not use the custom domain but a default guerilla one.
+      email.email_addr = email.email_addr.replace(/@.*/, '@'+NINJA_DOMAIN);
+      return email;
+    });
 }
 
 function getNewEmails( ninja ){
