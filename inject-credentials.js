@@ -69,7 +69,7 @@ var filters = [
   },
   {
     key: 'lastname',
-    matchers:  defaultMatchers('lastname')
+    matchers: defaultMatchers('lastname')
   },
   {
     key: 'email',

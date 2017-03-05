@@ -1,21 +1,21 @@
-function onInit(){
+function onInit() {
 
 }
 
 
 var registeredNinjas = [];
-function registerNinjaListener( ninja ){
-  registeredNinjas.push( ninja );
+function registerNinjaListener(ninja) {
+  registeredNinjas.push(ninja);
 
 }
 
-chrome.runtime.onMessage.addListener(function messageListener( messageJson, sender, sendResponse ){
+chrome.runtime.onMessage.addListener(function messageListener(messageJson, sender, sendResponse) {
   var message = JSON.parse(messageJson);
 
 });
 
-function ninjaTick(){
-  registeredNinjas.forEach(function(ninja){
+function ninjaTick() {
+  registeredNinjas.forEach(function (ninja) {
 
   });
 }
