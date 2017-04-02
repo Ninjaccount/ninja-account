@@ -5,6 +5,10 @@ email : string,
 password : string
 }
 */
+function siblingContains(input, selector, value) {
+  var $sibling = $(input).siblings(selector);
+  return $sibling && $sibling.html() && $sibling.html().toLowerCase().indexOf(value.toLowerCase()) != -1;
+}
 
 function attributeContains(input, attrName, value) {
   return $(input).attr(attrName) && $(input).attr(attrName).toLowerCase().indexOf(value.toLowerCase()) != -1;
@@ -19,11 +23,13 @@ const idMatch = value => input => attributeContains(input, 'id', value);
 const nameMatch = value => input => attributeContains(input, 'name', value);
 const placeholderMatch = value => input => attributeContains(input, 'placeholder', value);
 const typeMatch = value => input => attributeEquals(input, 'type', value);
+const labelMatch = value => input => siblingContains(input, 'label', value);
 
 const defaultMatchers = value => [
   placeholderMatch(value),
   idMatch(value),
-  nameMatch(value)
+  nameMatch(value),
+  labelMatch(value)
 ]
 
 // order is important, the last matching will be the final value of the input
@@ -65,17 +71,23 @@ var filters = [
   },
   {
     key: 'firstname',
-    matchers: defaultMatchers('firstname')
+    matchers: [
+		...defaultMatchers('firstname'),
+		...defaultMatchers('first name'),
+	]
   },
   {
     key: 'lastname',
-    matchers: defaultMatchers('lastname')
+    matchers: [
+		...defaultMatchers('lastname'),
+		...defaultMatchers('last name'),
+	]
   },
   {
     key: 'email',
     matchers: [
       ...defaultMatchers('email'),
-      ...defaultMatchers('e-mail')
+      ...defaultMatchers('e-mail'),
     ]
   },
   {
