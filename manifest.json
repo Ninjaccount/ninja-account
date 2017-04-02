@@ -3,7 +3,7 @@
 
   "name": "Ninja Account",
   "description": "Ninja Account helps you being free on the web",
-  "version": "1.0",
+  "version": "0.0.1",
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
@@ -13,7 +13,7 @@
     }
   ],
   "browser_action": {
-    "default_icon": "icon.png",
+    "default_icon": "assets/icon_16x16.png",
     "default_popup": "ninja.html"
   },
   "permissions": [
